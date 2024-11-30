@@ -1,9 +1,13 @@
 module Main where
 
+import Control.Monad (replicateM)
+import System.Random (randomRIO)
+
 type Grid = [[Bool]]
 
-initialGrid :: Int -> Int -> Grid
-initialGrid width height = replicate height (replicate width False)
+initialGrid :: Int -> Int -> IO Grid
+initialGrid width height =
+  replicateM height (replicateM width (randomRIO (False, True)))
 
 printGrid :: Grid -> IO ()
 printGrid =
@@ -11,5 +15,5 @@ printGrid =
 
 main :: IO ()
 main = do
-  let grid = initialGrid 20 20
+  grid <- initialGrid 20 20
   printGrid grid
