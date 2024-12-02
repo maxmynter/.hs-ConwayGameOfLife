@@ -2,28 +2,28 @@ module Main where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad (replicateM)
-import System.Console.ANSI (clearScreen)
+import System.Console.ANSI (clearScreen, hideCursor, setCursorPosition, showCursor)
 import System.Random (randomRIO)
 
 type Width = Int
 
 type Height = Int
 
-data CellState = Dead | Alive 
- deriving (Eq)
+data CellState = Dead | Alive
+  deriving (Eq)
 
 type Grid = [[CellState]]
 
 initialGrid :: Width -> Height -> IO Grid
 initialGrid width height =
-  replicateM height ( replicateM width (fmap (\x -> if x then Alive else Dead) (randomRIO(True, False))))
+  replicateM height (replicateM width (fmap (\x -> if x then Alive else Dead) (randomRIO (True, False))))
 
 getDimensions :: Grid -> (Width, Height)
 getDimensions g = (length g, length $ head g)
 
 printGrid :: Grid -> IO ()
-printGrid =
-  mapM_ (putStrLn . map (\cell -> if cell == Alive then '█' else ' '))
+printGrid grid =
+  putStr $ concat [concat [if cell == Alive then "█" else " " | cell <- row] ++ "\n" | row <- grid]
 
 countNeighbors :: Grid -> Int -> Int -> Int
 countNeighbors grid row col =
@@ -54,12 +54,15 @@ updateGrid grid =
 
 gameLoop :: Grid -> IO ()
 gameLoop grid = do
-  clearScreen
+  setCursorPosition 0 0
   printGrid grid
   threadDelay 250000 -- 0.25 second delay
   gameLoop (updateGrid grid)
 
 main :: IO ()
 main = do
+  clearScreen
+  hideCursor
   grid <- initialGrid 40 40
   gameLoop grid
+  showCursor
